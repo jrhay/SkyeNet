@@ -1,0 +1,7 @@
+.vs/
+SkyeNet/bin/
+SkyeNet/obj/
+SkyeNetFramework/bin/
+SkyeNetFramework/obj/
+SkyeTekAPI/win32/Debug/
+SkyeTekAPI/win32/Release/
