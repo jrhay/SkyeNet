@@ -13,6 +13,8 @@ namespace SkyeNet
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
     public class Device
     {
+        // SkyeTek API Device struct marshaling
+
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]
         public String friendly;
 
@@ -32,5 +34,12 @@ namespace SkyeNet
 
         IntPtr user;
         IntPtr internaldata;
+
+        // Class Methods
+
+        public override string ToString()
+        {
+            return friendly;
+        }
     }
 }

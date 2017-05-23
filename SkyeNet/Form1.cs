@@ -13,65 +13,173 @@ namespace SkyeNetDemo
 {
     public partial class Form1 : Form
     {
-        SkyeNet.SkyeNet _SkyeTek = new SkyeNet.SkyeNet();
+        SkyeNet.SkyeNet _SkyeTek;
 
         public Form1()
         {
             InitializeComponent();
+            InitializeSkyeNet();
+        }
+
+        private void InitializeSkyeNet()
+        {
+            _SkyeTek = new SkyeNet.SkyeNet();
+            ResetDevices();
+        }
+
+        #region GUI Event Handling
+
+        private void btnCloseAll_Click(object sender, EventArgs e)
+        {
+            InitializeSkyeNet();
+        }
+
+        private void chkAllDevices_CheckedChanged(object sender, EventArgs e)
+        {
+            cmbDevices.Enabled = !chkAllDevices.Checked;
+            if (chkAllDevices.Checked)
+                SetAllowReaders(true);
+            else
+                SetAllowReaders(cmbDevices.SelectedIndex >= 0);
         }
 
         private void btnFindDevices_Click(object sender, EventArgs e)
         {
-            ClearReaders();
-            _SkyeTek.RefreshDevices();
-            lblNumDevices.Text = _SkyeTek.NumDevices.ToString();
-            grpReaders.Enabled = (_SkyeTek.NumDevices > 0);
+            PopulateDevices();
         }
 
         private void btnFindReaders_Click(object sender, EventArgs e)
         {
-            _SkyeTek.RefreshReaders();
-            lblNumReaders.Text = _SkyeTek.NumReaders.ToString();
+            if (chkAllDevices.Checked)
+                PopulateReaders();
+            else
+                PopulateReaders(cmbDevices.SelectedItem as Device);
         }
 
-        private void ClearReaders()
+        private void cmbDevices_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cmbDevices.SelectedIndex >= 0)
+                AddDeviceToLog("Selected SkyeTek Device:", cmbDevices.SelectedItem as Device);
+            SetAllowReaders(cmbDevices.SelectedIndex >= 0);
+        }
+
+        private void cmbReaders_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cmbReaders.SelectedIndex >= 0)
+                AddReaderToLog("Selected RFID Reader: ", cmbReaders.SelectedItem as Reader);
+        }
+
+        #endregion
+
+        #region Devices
+
+        private void SetHaveDevices(bool doHaveDevices)
+        {
+            grpReaders.Enabled = doHaveDevices;
+            cmbDevices.Enabled = doHaveDevices;
+            chkAllDevices.Enabled = doHaveDevices;
+        }
+
+        private void ResetDevices()
+        {
+            ResetReaders();
+            lblNumDevices.Text = "0";
+            chkAllDevices.Checked = false;
+            cmbDevices.Items.Clear();
+            cmbDevices.SelectedIndex = -1;
+            SetHaveDevices(false);
+        }
+
+        private void PopulateDevices()
+        {
+            using (new WaitCursor())
+            {
+                ResetDevices();
+                foreach (Device device in _SkyeTek.GetDevices())
+                    cmbDevices.Items.Add(device);
+
+                lblNumDevices.Text = _SkyeTek.NumDevices.ToString();
+                SetHaveDevices(_SkyeTek.NumDevices > 0);
+            }
+        }
+
+        #endregion
+
+        #region Readers
+
+        private void SetAllowReaders(bool doAllowReaders)
+        {
+            btnFindReaders.Enabled = doAllowReaders;
+        }
+
+        private void SetHaveReaders(bool doHaveReaders)
+        {
+            cmbReaders.Enabled = doHaveReaders;
+        }
+
+        private void ResetReaders()
         {
             lblNumReaders.Text = "0";
-            grpReaders.Enabled = false;
+            cmbReaders.Items.Clear();
+            cmbReaders.SelectedIndex = -1;
+            SetHaveReaders(false);
+            SetAllowReaders(false);
         }
 
-        private void btnCloseAll_Click(object sender, EventArgs e)
+        private void PopulateReaders(Device device = null)
         {
-            _SkyeTek = new SkyeNet.SkyeNet();
-        }
-
-        private void btnGetDevice_Click(object sender, EventArgs e)
-        {
-            for (int i = 0; i < _SkyeTek.NumDevices; i++)
+            using (new WaitCursor())
             {
-                Device device = _SkyeTek.GetDevice(i);
-                txtLog.AppendText("SkyeTek Device #" + i + ":\r\n");
-                txtLog.AppendText("\tDevice Name: " + device.friendly + "\r\n");
-                txtLog.AppendText("\tType: " + device.type + "\r\n");
-                txtLog.AppendText("\tAddress: " + device.address + "\r\n");
-                txtLog.AppendText("\r\n");
+                ResetReaders();
+                foreach (Reader reader in _SkyeTek.GetReaders(device))
+                    cmbReaders.Items.Add(reader);
             }
+
+            lblNumReaders.Text = _SkyeTek.NumReaders.ToString();
+            SetHaveReaders(_SkyeTek.NumReaders > 0);
         }
 
-        private void btnGetReader_Click(object sender, EventArgs e)
+        #endregion
+
+        #region Log Handling
+
+        private void AddLog(String Message)
         {
-            for (int i = 0; i < _SkyeTek.NumReaders; i++)
-            {
-                Reader reader = _SkyeTek.GetReader(i);
-                txtLog.AppendText("RFID Reader #" + i + ":\r\n");
-                txtLog.AppendText("\tReader Name: " + reader.readerName + "\r\n");
-                txtLog.AppendText("\tManufacturer: " + reader.manufacturer + "\r\n");
-                txtLog.AppendText("\tModel: " + reader.model + "\r\n");
-                txtLog.AppendText("\tSerial Number: " + reader.serialNumber + "\r\n");
-                txtLog.AppendText("\tFirmware: " + reader.firmware + "\r\n");
-                txtLog.AppendText("\tFriendly: " + reader.friendly + "\r\n");
-                txtLog.AppendText("\r\n");
-            }
+            txtLog.AppendText(DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString() + ": " + Message + "\r\n");
         }
+
+        private void AddSubLog(String Message, int indents = 1)
+        {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < indents; i++)
+                sb.Append("\t");
+            sb.Append(Message);
+            sb.Append("\r\n");
+            txtLog.AppendText(sb.ToString());
+        }
+
+        private void AddDeviceToLog(String Message, Device device)
+        {
+            AddLog(Message);
+            AddSubLog("Device Name: " + device.friendly);
+            AddSubLog("Type: " + device.type);
+            AddSubLog("Address: " + device.address);
+            AddSubLog("");
+        }
+
+        private void AddReaderToLog(String Message, Reader reader)
+        {
+            AddLog(Message);
+            AddSubLog("Reader Name: " + reader.readerName);
+            AddSubLog("Manufacturer: " + reader.manufacturer);
+            AddSubLog("Model: " + reader.model);
+            AddSubLog("Serial Number: " + reader.serialNumber);
+            AddSubLog("Firmware: " + reader.firmware);
+            AddSubLog("Friendly: " + reader.friendly);
+            AddSubLog("");
+        }
+
+        #endregion
+
     }
 }

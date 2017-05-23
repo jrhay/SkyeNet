@@ -13,6 +13,8 @@ namespace SkyeNet
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
     public class Reader
     {
+        // Skyetek API Reader struct marshaling
+
         IntPtr id;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
@@ -44,6 +46,25 @@ namespace SkyeNet
 
         IntPtr user;
         IntPtr internaldata;
+
+        // Class Methods
+
+        public override string ToString()
+        {
+            if (!String.IsNullOrEmpty(readerName))
+                return readerName;
+
+            if (!String.IsNullOrEmpty(friendly))
+                return friendly;
+
+            if (!String.IsNullOrEmpty(manufacturer) || !String.IsNullOrEmpty(model))
+                return manufacturer + " " + model;
+
+            if (!String.IsNullOrEmpty(serialNumber))
+                return serialNumber;
+
+            return "RFID Reader ";
+        }
 
     }
 }

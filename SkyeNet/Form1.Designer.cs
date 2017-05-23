@@ -32,14 +32,17 @@
             this.btnFindDevices = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.chkAllDevices = new System.Windows.Forms.CheckBox();
+            this.cmbDevices = new System.Windows.Forms.ComboBox();
+            this.label2 = new System.Windows.Forms.Label();
             this.lblNumDevices = new System.Windows.Forms.Label();
             this.btnCloseAll = new System.Windows.Forms.Button();
-            this.btnGetDevice = new System.Windows.Forms.Button();
             this.grpReaders = new System.Windows.Forms.GroupBox();
-            this.btnGetReader = new System.Windows.Forms.Button();
             this.lblNumReaders = new System.Windows.Forms.Label();
             this.btnFindReaders = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
+            this.cmbReaders = new System.Windows.Forms.ComboBox();
+            this.label4 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.grpReaders.SuspendLayout();
             this.SuspendLayout();
@@ -57,7 +60,7 @@
             // 
             // btnFindDevices
             // 
-            this.btnFindDevices.Location = new System.Drawing.Point(6, 19);
+            this.btnFindDevices.Location = new System.Drawing.Point(6, 23);
             this.btnFindDevices.Name = "btnFindDevices";
             this.btnFindDevices.Size = new System.Drawing.Size(137, 23);
             this.btnFindDevices.TabIndex = 1;
@@ -76,16 +79,49 @@
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.btnGetDevice);
+            this.groupBox1.Controls.Add(this.chkAllDevices);
+            this.groupBox1.Controls.Add(this.cmbDevices);
+            this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.lblNumDevices);
             this.groupBox1.Controls.Add(this.btnFindDevices);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Location = new System.Drawing.Point(13, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(200, 176);
+            this.groupBox1.Size = new System.Drawing.Size(200, 137);
             this.groupBox1.TabIndex = 3;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Hardware Devices";
+            // 
+            // chkAllDevices
+            // 
+            this.chkAllDevices.AutoSize = true;
+            this.chkAllDevices.Enabled = false;
+            this.chkAllDevices.Location = new System.Drawing.Point(119, 96);
+            this.chkAllDevices.Name = "chkAllDevices";
+            this.chkAllDevices.Size = new System.Drawing.Size(79, 17);
+            this.chkAllDevices.TabIndex = 6;
+            this.chkAllDevices.Text = "All Devices";
+            this.chkAllDevices.UseVisualStyleBackColor = true;
+            this.chkAllDevices.CheckedChanged += new System.EventHandler(this.chkAllDevices_CheckedChanged);
+            // 
+            // cmbDevices
+            // 
+            this.cmbDevices.Enabled = false;
+            this.cmbDevices.FormattingEnabled = true;
+            this.cmbDevices.Location = new System.Drawing.Point(9, 103);
+            this.cmbDevices.Name = "cmbDevices";
+            this.cmbDevices.Size = new System.Drawing.Size(104, 21);
+            this.cmbDevices.TabIndex = 5;
+            this.cmbDevices.SelectedIndexChanged += new System.EventHandler(this.cmbDevices_SelectedIndexChanged);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(6, 86);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(107, 13);
+            this.label2.TabIndex = 4;
+            this.label2.Text = "Select Active Device";
             // 
             // lblNumDevices
             // 
@@ -107,39 +143,20 @@
             this.btnCloseAll.UseVisualStyleBackColor = true;
             this.btnCloseAll.Click += new System.EventHandler(this.btnCloseAll_Click);
             // 
-            // btnGetDevice
-            // 
-            this.btnGetDevice.Location = new System.Drawing.Point(19, 104);
-            this.btnGetDevice.Name = "btnGetDevice";
-            this.btnGetDevice.Size = new System.Drawing.Size(124, 23);
-            this.btnGetDevice.TabIndex = 4;
-            this.btnGetDevice.Text = "Get Device...";
-            this.btnGetDevice.UseVisualStyleBackColor = true;
-            this.btnGetDevice.Click += new System.EventHandler(this.btnGetDevice_Click);
-            // 
             // grpReaders
             // 
-            this.grpReaders.Controls.Add(this.btnGetReader);
+            this.grpReaders.Controls.Add(this.cmbReaders);
+            this.grpReaders.Controls.Add(this.label4);
             this.grpReaders.Controls.Add(this.lblNumReaders);
             this.grpReaders.Controls.Add(this.btnFindReaders);
             this.grpReaders.Controls.Add(this.label3);
             this.grpReaders.Enabled = false;
             this.grpReaders.Location = new System.Drawing.Point(230, 12);
             this.grpReaders.Name = "grpReaders";
-            this.grpReaders.Size = new System.Drawing.Size(200, 176);
+            this.grpReaders.Size = new System.Drawing.Size(200, 137);
             this.grpReaders.TabIndex = 5;
             this.grpReaders.TabStop = false;
             this.grpReaders.Text = "RFID Readers";
-            // 
-            // btnGetReader
-            // 
-            this.btnGetReader.Location = new System.Drawing.Point(19, 104);
-            this.btnGetReader.Name = "btnGetReader";
-            this.btnGetReader.Size = new System.Drawing.Size(124, 23);
-            this.btnGetReader.TabIndex = 4;
-            this.btnGetReader.Text = "Get Reader...";
-            this.btnGetReader.UseVisualStyleBackColor = true;
-            this.btnGetReader.Click += new System.EventHandler(this.btnGetReader_Click);
             // 
             // lblNumReaders
             // 
@@ -170,6 +187,25 @@
             this.label3.TabIndex = 2;
             this.label3.Text = "Number of Devices Attached:";
             // 
+            // cmbReaders
+            // 
+            this.cmbReaders.Enabled = false;
+            this.cmbReaders.FormattingEnabled = true;
+            this.cmbReaders.Location = new System.Drawing.Point(9, 103);
+            this.cmbReaders.Name = "cmbReaders";
+            this.cmbReaders.Size = new System.Drawing.Size(173, 21);
+            this.cmbReaders.TabIndex = 7;
+            this.cmbReaders.SelectedIndexChanged += new System.EventHandler(this.cmbReaders_SelectedIndexChanged);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(6, 86);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(108, 13);
+            this.label4.TabIndex = 6;
+            this.label4.Text = "Select Active Reader";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -198,12 +234,15 @@
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Label lblNumDevices;
         private System.Windows.Forms.Button btnCloseAll;
-        private System.Windows.Forms.Button btnGetDevice;
         private System.Windows.Forms.GroupBox grpReaders;
-        private System.Windows.Forms.Button btnGetReader;
         private System.Windows.Forms.Label lblNumReaders;
         private System.Windows.Forms.Button btnFindReaders;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.CheckBox chkAllDevices;
+        private System.Windows.Forms.ComboBox cmbDevices;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.ComboBox cmbReaders;
+        private System.Windows.Forms.Label label4;
     }
 }
 
