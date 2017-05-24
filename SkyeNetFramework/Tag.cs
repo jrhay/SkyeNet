@@ -10,7 +10,7 @@ namespace SkyeNet
     /// <summary>
     /// Class to represent a Skyetek RFID Tag
     /// </summary>
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto, Pack = 8)]
     public class Tag
     {
         // SkyeTek API Tag struct marshaling
@@ -23,7 +23,7 @@ namespace SkyeNet
 
         public UInt16 session;
 
-        public char rf;
+        public byte rf;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
         public String friendly;

@@ -10,7 +10,7 @@ namespace SkyeNet
     /// <summary>
     /// Enum to specify a Skyetek RFID Tag Type 
     /// </summary>
-    public enum TagType : ushort
+    public enum TagType : UInt16
     {
         /* STPV3 Tag Types */
         AUTO_DETECT = 0x0000,

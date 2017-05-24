@@ -10,7 +10,7 @@ namespace SkyeNet
     /// <summary>
     /// Class to represent a Skyetek hardware device
     /// </summary>
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto, Pack = 8)]
     public class Device
     {
         // SkyeTek API Device struct marshaling

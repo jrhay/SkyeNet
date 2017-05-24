@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
+using System.Security;
 
 namespace SkyeNet
 {
@@ -24,8 +26,17 @@ namespace SkyeNet
         static extern void SkyeTek_FreeReaders(IntPtr lpReaders, UInt32 count);
 
         [DllImport("stapi", CallingConvention = CallingConvention.Cdecl)]
-        static extern Status SkyeTek_GetTags(IntPtr lpReader, TagType tagType, ref IntPtr lpTags, ref UInt16 count);
+        static extern void SkyeTek_FreeReader(IntPtr lpReader);
 
+        [DllImport("stapi", CallingConvention = CallingConvention.Cdecl)]
+        static extern void SkyeTek_FreeDevice(IntPtr lpDevice);
+
+        [DllImport("stapi", CallingConvention = CallingConvention.Cdecl)]
+        static extern void SkyeTek_FreeTag(IntPtr lpTag);
+
+        [DllImport("stapi", CallingConvention = CallingConvention.Cdecl)]
+        static extern Status SkyeTek_GetTags(IntPtr lpReader, TagType tagType, ref IntPtr lpTags, ref UInt16 count);
+        
         [DllImport("stapi", CallingConvention = CallingConvention.Cdecl)]
         static extern Status SkyeTek_FreeTags(IntPtr lpReader, IntPtr lpTags, UInt16 count);
 
@@ -43,6 +54,7 @@ namespace SkyeNet
         IntPtr _Tags = IntPtr.Zero;
 
         Status _LastResult = Status.SUCCESS;
+        Exception _LastException = null;
 
         /// <summary>
         /// The last operation result, for methods that set LastResult (as noted in their comments)
@@ -50,6 +62,14 @@ namespace SkyeNet
         public Status LastResult
         {
             get { return _LastResult; }
+        }
+
+        /// <summary>
+        /// The last exception ecountered in the SkyTek API wrapper
+        /// </summary>
+        public Exception LastException
+        {
+            get { return _LastException; }
         }
 
 
@@ -118,9 +138,16 @@ namespace SkyeNet
         /// </summary>
         private void FreeTags()
         {
-            if ((_Tags != IntPtr.Zero) && (_CurrentReader != IntPtr.Zero))
+            if (_Tags != IntPtr.Zero)
             {
-                SkyeTek_FreeTags(_CurrentReader, _Tags, (UInt16)_numTags);
+                for (int i = 0; i < _numTags; i++)
+                {
+                    IntPtr Address = Marshal.ReadIntPtr(_Tags + (4 * i));
+                    SkyeTek_FreeTag(Address);
+                }
+                if (_CurrentReader != IntPtr.Zero)
+                    SkyeTek_FreeTags(_CurrentReader, _Tags, (UInt16)_numTags);
+
                 _Tags = IntPtr.Zero;
                 _numTags = 0;
             }
@@ -133,7 +160,13 @@ namespace SkyeNet
         {
             if (_Readers != IntPtr.Zero)
             {
+                for (int i = 0; i < _numReaders; i++)
+                {
+                    IntPtr Address = Marshal.ReadIntPtr(_Readers + (4 * i));
+                    SkyeTek_FreeReader(Address);
+                }
                 SkyeTek_FreeReaders(_Readers, _numReaders);
+
                 _Readers = IntPtr.Zero;
                 _numReaders = 0;
                 _CurrentReader = IntPtr.Zero;
@@ -147,7 +180,13 @@ namespace SkyeNet
         {
             if (_Devices != IntPtr.Zero)
             {
+                for (int i = 0; i < _numDevices; i++)
+                {
+                    IntPtr Address = Marshal.ReadIntPtr(_Devices + (4 * i));
+                    SkyeTek_FreeDevice(Address);
+                }
                 SkyeTek_FreeDevices(_Devices, _numDevices);
+
                 _Devices = IntPtr.Zero;
                 _numDevices = 0;
             }
@@ -174,6 +213,11 @@ namespace SkyeNet
                     Marshal.WriteIntPtr(deviceArray, devicePtr);
                     _numReaders = SkyeTek_DiscoverReaders(deviceArray, 1, ref _Readers);
                 }
+                catch (Exception ex)
+                {
+                    _LastResult = Status.FAILURE;
+                    _LastException = ex;
+                }
                 finally
                 {
                     Marshal.FreeHGlobal(deviceArray);
@@ -192,7 +236,15 @@ namespace SkyeNet
         public uint RefreshDevices()
         {
             FreeDevices();
-            _numDevices = SkyeTek_DiscoverDevices(ref _Devices);
+            try
+            {
+                _numDevices = SkyeTek_DiscoverDevices(ref _Devices);
+            }
+            catch (Exception ex)
+            {
+                _LastResult = Status.FAILURE;
+                _LastException = ex;
+            }
             return NumDevices;
         }
 
@@ -202,6 +254,8 @@ namespace SkyeNet
         /// </summary>
         /// <param name="tagType">Scan for tags of this type</param>
         /// <returns>Number of nearby tags discovered, or 0 on any error (LastResult is set appropriately)</returns>
+        //[HandleProcessCorruptedStateExceptions]
+        //[SecurityCritical]
         public uint RefreshTags(TagType tagType)
         {
             FreeTags();
@@ -209,12 +263,24 @@ namespace SkyeNet
             if (_CurrentReader == IntPtr.Zero)
                 throw new InvalidOperationException("An Active RFID Reader must be set before discovering tags");
 
-            UInt16 numTags = 0;
-            _LastResult = SkyeTek_GetTags(_CurrentReader, tagType, ref _Tags, ref numTags);
-            if (_LastResult == Status.SUCCESS)
-                _numTags = numTags;
-            else
-                FreeTags();
+            try
+            {
+                UInt16 numTags = 0;
+                _LastResult = SkyeTek_GetTags(_CurrentReader, tagType, ref _Tags, ref numTags);
+                //IntPtr Address = Marshal.ReadIntPtr(_Readers);
+                //SkyeTek_GetTags(Address, 0x0000, ref _Tags, ref numTags);
+                if (_LastResult == Status.SUCCESS)
+                    _numTags = numTags;
+                else
+                    FreeTags();
+            }
+            catch (Exception ex)
+            {
+                _LastResult = Status.FAILURE;
+                _LastException = ex;
+                _numTags = 0;
+            }
+
             return _numTags;
         }
 
@@ -323,6 +389,7 @@ namespace SkyeNet
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
+                    _LastException = null;
                 }
 
                 FreeTags();

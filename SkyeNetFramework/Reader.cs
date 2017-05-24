@@ -10,7 +10,7 @@ namespace SkyeNet
     /// <summary>
     /// Class to represent a Skyetek RFID Reader
     /// </summary>
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto, Pack = 8)]
     public class Reader
     {
         // Skyetek API Reader struct marshaling

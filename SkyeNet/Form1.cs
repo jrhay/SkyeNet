@@ -13,7 +13,7 @@ namespace SkyeNetDemo
 {
     public partial class Form1 : Form
     {
-        SkyeNet.SkyeNet _SkyeTek;
+        SkyeNet.SkyeNet _SkyeTek = null;
 
         public Form1()
         {
@@ -23,8 +23,24 @@ namespace SkyeNetDemo
 
         private void InitializeSkyeNet()
         {
+            if (_SkyeTek != null)
+            {
+                _SkyeTek.Dispose();
+                GC.Collect();
+            }
             _SkyeTek = new SkyeNet.SkyeNet();
             ResetDevices();
+        }
+
+        private void ShowSkyeTekError()
+        {
+            if (_SkyeTek.LastResult != Status.SUCCESS)
+            {
+                String Message = "Error encountered with RFID system";
+                if (_SkyeTek.LastException != null)
+                    Message = _SkyeTek.LastException.Message;
+                MessageBox.Show(this, Message, _SkyeTek.LastResult.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         #region GUI Event Handling
@@ -101,6 +117,7 @@ namespace SkyeNetDemo
             chkAllDevices.Checked = false;
             cmbDevices.Items.Clear();
             cmbDevices.SelectedIndex = -1;
+            cmbDevices.Text = null;
             SetHaveDevices(false);
         }
 
@@ -136,6 +153,7 @@ namespace SkyeNetDemo
             lblNumReaders.Text = "0";
             cmbReaders.Items.Clear();
             cmbReaders.SelectedIndex = -1;
+            cmbReaders.Text = null;
             SetHaveReaders(false);
             SetAllowReaders(false);
             ResetTags();
@@ -148,10 +166,13 @@ namespace SkyeNetDemo
                 ResetReaders();
                 foreach (Reader reader in _SkyeTek.GetReaders(device))
                     cmbReaders.Items.Add(reader);
+                if (cmbReaders.Items.Count == 1)
+                    cmbReaders.SelectedIndex = 0;
             }
 
             lblNumReaders.Text = _SkyeTek.NumReaders.ToString();
             SetHaveReaders(_SkyeTek.NumReaders > 0);
+            SetAllowReaders(true);
         }
 
         #endregion
@@ -173,6 +194,7 @@ namespace SkyeNetDemo
             lblNumTags.Text = "0";
             cmbTags.Items.Clear();
             cmbTags.SelectedIndex = -1;
+            cmbTags.Text = null;
             SetHaveTags(false);
             SetAllowTags(false);
         }
@@ -184,6 +206,7 @@ namespace SkyeNetDemo
                 ResetTags();
                 foreach (Tag tag in _SkyeTek.GetTags())
                     cmbTags.Items.Add(tag);
+                ShowSkyeTekError();
             }
 
             lblNumTags.Text = _SkyeTek.NumTags.ToString();

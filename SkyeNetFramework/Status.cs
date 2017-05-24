@@ -10,7 +10,7 @@ namespace SkyeNet
     /// <summary>
     /// Enum to specify a status code from the SkyeTek API functions
     /// </summary>
-    public enum Status : ushort
+    public enum Status : UInt16
     {
         FAILURE = 0,
         SUCCESS = 1,
