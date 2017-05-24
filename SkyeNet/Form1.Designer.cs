@@ -38,24 +38,31 @@
             this.lblNumDevices = new System.Windows.Forms.Label();
             this.btnCloseAll = new System.Windows.Forms.Button();
             this.grpReaders = new System.Windows.Forms.GroupBox();
+            this.cmbReaders = new System.Windows.Forms.ComboBox();
+            this.label4 = new System.Windows.Forms.Label();
             this.lblNumReaders = new System.Windows.Forms.Label();
             this.btnFindReaders = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
-            this.cmbReaders = new System.Windows.Forms.ComboBox();
-            this.label4 = new System.Windows.Forms.Label();
+            this.grpTags = new System.Windows.Forms.GroupBox();
+            this.cmbTags = new System.Windows.Forms.ComboBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.lblNumTags = new System.Windows.Forms.Label();
+            this.btnGetTags = new System.Windows.Forms.Button();
+            this.label7 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.grpReaders.SuspendLayout();
+            this.grpTags.SuspendLayout();
             this.SuspendLayout();
             // 
             // txtLog
             // 
             this.txtLog.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtLog.Location = new System.Drawing.Point(13, 262);
+            this.txtLog.Location = new System.Drawing.Point(13, 194);
             this.txtLog.Multiline = true;
             this.txtLog.Name = "txtLog";
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.txtLog.Size = new System.Drawing.Size(489, 136);
+            this.txtLog.Size = new System.Drawing.Size(643, 204);
             this.txtLog.TabIndex = 0;
             // 
             // btnFindDevices
@@ -135,7 +142,7 @@
             // 
             // btnCloseAll
             // 
-            this.btnCloseAll.Location = new System.Drawing.Point(13, 222);
+            this.btnCloseAll.Location = new System.Drawing.Point(12, 165);
             this.btnCloseAll.Name = "btnCloseAll";
             this.btnCloseAll.Size = new System.Drawing.Size(119, 23);
             this.btnCloseAll.TabIndex = 4;
@@ -157,6 +164,25 @@
             this.grpReaders.TabIndex = 5;
             this.grpReaders.TabStop = false;
             this.grpReaders.Text = "RFID Readers";
+            // 
+            // cmbReaders
+            // 
+            this.cmbReaders.Enabled = false;
+            this.cmbReaders.FormattingEnabled = true;
+            this.cmbReaders.Location = new System.Drawing.Point(9, 103);
+            this.cmbReaders.Name = "cmbReaders";
+            this.cmbReaders.Size = new System.Drawing.Size(173, 21);
+            this.cmbReaders.TabIndex = 7;
+            this.cmbReaders.SelectedIndexChanged += new System.EventHandler(this.cmbReaders_SelectedIndexChanged);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(6, 86);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(108, 13);
+            this.label4.TabIndex = 6;
+            this.label4.Text = "Select Active Reader";
             // 
             // lblNumReaders
             // 
@@ -183,34 +209,78 @@
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(6, 55);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(147, 13);
+            this.label3.Size = new System.Drawing.Size(148, 13);
             this.label3.TabIndex = 2;
-            this.label3.Text = "Number of Devices Attached:";
+            this.label3.Text = "Number of Readers Attached:";
             // 
-            // cmbReaders
+            // grpTags
             // 
-            this.cmbReaders.Enabled = false;
-            this.cmbReaders.FormattingEnabled = true;
-            this.cmbReaders.Location = new System.Drawing.Point(9, 103);
-            this.cmbReaders.Name = "cmbReaders";
-            this.cmbReaders.Size = new System.Drawing.Size(173, 21);
-            this.cmbReaders.TabIndex = 7;
-            this.cmbReaders.SelectedIndexChanged += new System.EventHandler(this.cmbReaders_SelectedIndexChanged);
+            this.grpTags.Controls.Add(this.cmbTags);
+            this.grpTags.Controls.Add(this.label5);
+            this.grpTags.Controls.Add(this.lblNumTags);
+            this.grpTags.Controls.Add(this.btnGetTags);
+            this.grpTags.Controls.Add(this.label7);
+            this.grpTags.Location = new System.Drawing.Point(450, 12);
+            this.grpTags.Name = "grpTags";
+            this.grpTags.Size = new System.Drawing.Size(200, 137);
+            this.grpTags.TabIndex = 6;
+            this.grpTags.TabStop = false;
+            this.grpTags.Text = "RFID Tags";
             // 
-            // label4
+            // cmbTags
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(6, 86);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(108, 13);
-            this.label4.TabIndex = 6;
-            this.label4.Text = "Select Active Reader";
+            this.cmbTags.Enabled = false;
+            this.cmbTags.FormattingEnabled = true;
+            this.cmbTags.Location = new System.Drawing.Point(15, 100);
+            this.cmbTags.Name = "cmbTags";
+            this.cmbTags.Size = new System.Drawing.Size(173, 21);
+            this.cmbTags.TabIndex = 12;
+            this.cmbTags.SelectedIndexChanged += new System.EventHandler(this.cmbTags_SelectedIndexChanged);
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(12, 83);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(97, 13);
+            this.label5.TabIndex = 11;
+            this.label5.Text = "Select Tag Reader";
+            // 
+            // lblNumTags
+            // 
+            this.lblNumTags.AutoSize = true;
+            this.lblNumTags.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblNumTags.Location = new System.Drawing.Point(165, 52);
+            this.lblNumTags.Name = "lblNumTags";
+            this.lblNumTags.Size = new System.Drawing.Size(14, 13);
+            this.lblNumTags.TabIndex = 10;
+            this.lblNumTags.Text = "0";
+            // 
+            // btnGetTags
+            // 
+            this.btnGetTags.Location = new System.Drawing.Point(12, 16);
+            this.btnGetTags.Name = "btnGetTags";
+            this.btnGetTags.Size = new System.Drawing.Size(137, 23);
+            this.btnGetTags.TabIndex = 8;
+            this.btnGetTags.Text = "Get Tags...";
+            this.btnGetTags.UseVisualStyleBackColor = true;
+            this.btnGetTags.Click += new System.EventHandler(this.btnGetTags_Click);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(12, 52);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(143, 13);
+            this.label7.TabIndex = 9;
+            this.label7.Text = "Number of Tags Discovered:";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(514, 410);
+            this.ClientSize = new System.Drawing.Size(668, 410);
+            this.Controls.Add(this.grpTags);
             this.Controls.Add(this.grpReaders);
             this.Controls.Add(this.btnCloseAll);
             this.Controls.Add(this.groupBox1);
@@ -221,6 +291,8 @@
             this.groupBox1.PerformLayout();
             this.grpReaders.ResumeLayout(false);
             this.grpReaders.PerformLayout();
+            this.grpTags.ResumeLayout(false);
+            this.grpTags.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -243,6 +315,12 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ComboBox cmbReaders;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.GroupBox grpTags;
+        private System.Windows.Forms.ComboBox cmbTags;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label lblNumTags;
+        private System.Windows.Forms.Button btnGetTags;
+        private System.Windows.Forms.Label label7;
     }
 }
 

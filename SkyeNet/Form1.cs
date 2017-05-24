@@ -56,6 +56,11 @@ namespace SkyeNetDemo
                 PopulateReaders(cmbDevices.SelectedItem as Device);
         }
 
+        private void btnGetTags_Click(object sender, EventArgs e)
+        {
+            PopulateTags();
+        }
+
         private void cmbDevices_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cmbDevices.SelectedIndex >= 0)
@@ -66,7 +71,16 @@ namespace SkyeNetDemo
         private void cmbReaders_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cmbReaders.SelectedIndex >= 0)
-                AddReaderToLog("Selected RFID Reader: ", cmbReaders.SelectedItem as Reader);
+            {
+                _SkyeTek.ActiveReader = cmbReaders.SelectedItem as Reader;
+                AddReaderToLog("Selected RFID Reader: ", _SkyeTek.ActiveReader);
+            }
+            SetAllowTags(cmbReaders.SelectedIndex >= 0);
+        }
+        private void cmbTags_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cmbTags.SelectedIndex >= 0)
+                AddTagToLog("Selected RFID Tag: ", cmbTags.SelectedItem as Tag);
         }
 
         #endregion
@@ -124,6 +138,7 @@ namespace SkyeNetDemo
             cmbReaders.SelectedIndex = -1;
             SetHaveReaders(false);
             SetAllowReaders(false);
+            ResetTags();
         }
 
         private void PopulateReaders(Device device = null)
@@ -137,6 +152,43 @@ namespace SkyeNetDemo
 
             lblNumReaders.Text = _SkyeTek.NumReaders.ToString();
             SetHaveReaders(_SkyeTek.NumReaders > 0);
+        }
+
+        #endregion
+
+        #region Tags
+
+        private void SetAllowTags(Boolean doAllowTags)
+        {
+            btnGetTags.Enabled = doAllowTags;
+        }
+
+        private void SetHaveTags(bool doHaveTags)
+        {
+            cmbTags.Enabled = doHaveTags;
+        }
+
+        private void ResetTags()
+        {
+            lblNumTags.Text = "0";
+            cmbTags.Items.Clear();
+            cmbTags.SelectedIndex = -1;
+            SetHaveTags(false);
+            SetAllowTags(false);
+        }
+
+        private void PopulateTags()
+        {
+            using (new WaitCursor())
+            {
+                ResetTags();
+                foreach (Tag tag in _SkyeTek.GetTags())
+                    cmbTags.Items.Add(tag);
+            }
+
+            lblNumTags.Text = _SkyeTek.NumTags.ToString();
+            SetHaveTags(_SkyeTek.NumTags > 0);
+            SetAllowTags(true);
         }
 
         #endregion
@@ -177,6 +229,15 @@ namespace SkyeNetDemo
             AddSubLog("Firmware: " + reader.firmware);
             AddSubLog("Friendly: " + reader.friendly);
             AddSubLog("");
+        }
+
+        private void AddTagToLog(String Message, Tag tag)
+        {
+            AddLog(Message);
+            AddSubLog("Tag Type: " + tag.type.ToString());
+            AddSubLog("AFI: " + tag.afi);
+            AddSubLog("Session: " + tag.session);
+            AddSubLog("Friendly: " + tag.friendly);
         }
 
         #endregion

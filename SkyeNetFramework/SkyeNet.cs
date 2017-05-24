@@ -23,6 +23,12 @@ namespace SkyeNet
         [DllImport("stapi", CallingConvention = CallingConvention.Cdecl)]
         static extern void SkyeTek_FreeReaders(IntPtr lpReaders, UInt32 count);
 
+        [DllImport("stapi", CallingConvention = CallingConvention.Cdecl)]
+        static extern Status SkyeTek_GetTags(IntPtr lpReader, TagType tagType, ref IntPtr lpTags, ref UInt16 count);
+
+        [DllImport("stapi", CallingConvention = CallingConvention.Cdecl)]
+        static extern Status SkyeTek_FreeTags(IntPtr lpReader, IntPtr lpTags, UInt16 count);
+
         #endregion
 
         uint _numDevices = 0;
@@ -30,6 +36,58 @@ namespace SkyeNet
 
         uint _numReaders = 0;
         IntPtr _Readers = IntPtr.Zero;
+
+        IntPtr _CurrentReader = IntPtr.Zero;
+
+        uint _numTags = 0;
+        IntPtr _Tags = IntPtr.Zero;
+
+        Status _LastResult = Status.SUCCESS;
+
+        /// <summary>
+        /// The last operation result, for methods that set LastResult (as noted in their comments)
+        /// </summary>
+        public Status LastResult
+        {
+            get { return _LastResult; }
+        }
+
+
+        /// <summary>
+        /// Set the current active RFID reader to be used for Tag 
+        /// discovery/reading/programming, system parameters, etc.
+        /// 
+        /// Changing this value will immediately close and invalidate
+        /// any currently-read tag or system data.
+        /// </summary>
+        public Reader ActiveReader
+        {
+            get
+            {
+                if (_CurrentReader == IntPtr.Zero)
+                    return null;
+                return Marshal.PtrToStructure<Reader>(_CurrentReader);
+            }
+            set
+            {
+                FreeTags();
+                if (value == null)
+                {
+                    if (_CurrentReader != IntPtr.Zero)
+                    {
+                        Marshal.FreeHGlobal(_CurrentReader);
+                        _CurrentReader = IntPtr.Zero;
+                    }
+                }
+                else
+                {
+                    if (_CurrentReader == IntPtr.Zero)
+                        _CurrentReader = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(Reader)));
+                    Marshal.StructureToPtr(value, _CurrentReader, false);
+                }
+            }
+        }
+
 
         /// <summary>
         /// The number of SkyeTek hardware devices currently attached
@@ -48,6 +106,27 @@ namespace SkyeNet
         }
 
         /// <summary>
+        /// The number of RFID tags the reader last saw
+        /// </summary>
+        public uint NumTags
+        {
+            get { return _numTags; }
+        }
+
+        /// <summary>
+        /// Deallocate the internal list of RFID tags last seen
+        /// </summary>
+        private void FreeTags()
+        {
+            if ((_Tags != IntPtr.Zero) && (_CurrentReader != IntPtr.Zero))
+            {
+                SkyeTek_FreeTags(_CurrentReader, _Tags, (UInt16)_numTags);
+                _Tags = IntPtr.Zero;
+                _numTags = 0;
+            }
+        }
+
+        /// <summary>
         /// Deallocate the internal list of RFID readers
         /// </summary>
         private void FreeReaders()
@@ -56,6 +135,8 @@ namespace SkyeNet
             {
                 SkyeTek_FreeReaders(_Readers, _numReaders);
                 _Readers = IntPtr.Zero;
+                _numReaders = 0;
+                _CurrentReader = IntPtr.Zero;
             }
         }
 
@@ -68,6 +149,7 @@ namespace SkyeNet
             {
                 SkyeTek_FreeDevices(_Devices, _numDevices);
                 _Devices = IntPtr.Zero;
+                _numDevices = 0;
             }
         }
 
@@ -115,6 +197,28 @@ namespace SkyeNet
         }
 
         /// <summary>
+        /// Scan for any readable tags of the specified type, returning the number of tags discovered.
+        /// Must be called after an active RFID reader has been set; throws InvalidOperationException if no reader is active.
+        /// </summary>
+        /// <param name="tagType">Scan for tags of this type</param>
+        /// <returns>Number of nearby tags discovered, or 0 on any error (LastResult is set appropriately)</returns>
+        public uint RefreshTags(TagType tagType)
+        {
+            FreeTags();
+
+            if (_CurrentReader == IntPtr.Zero)
+                throw new InvalidOperationException("An Active RFID Reader must be set before discovering tags");
+
+            UInt16 numTags = 0;
+            _LastResult = SkyeTek_GetTags(_CurrentReader, tagType, ref _Tags, ref numTags);
+            if (_LastResult == Status.SUCCESS)
+                _numTags = numTags;
+            else
+                FreeTags();
+            return _numTags;
+        }
+
+        /// <summary>
         /// Get a list of all found Skyetek hardware devices currently attached to the system
         /// Calls RefreshDevices()
         /// </summary>
@@ -144,12 +248,31 @@ namespace SkyeNet
         }
 
         /// <summary>
+        /// Get a list of any nearby tags of the specified type.
+        /// Must be called after an active RFID reader has been set; throws InvalidOperationException if no reader is active.
+        /// </summary>
+        /// <param name="tagType">Tag type to scan for, or empty for "Auto Detect"</param>
+        /// <returns>List of tags discovered, will be empty with LastResult set appropriately on an error</returns>
+        public IEnumerable<Tag> GetTags(TagType tagType = TagType.AUTO_DETECT)
+        {
+            RefreshTags(tagType);
+            List<Tag> tags = new List<Tag>((int)NumTags);
+            for (int i = 0; i < NumTags; i++)
+                tags.Add(GetTag(i));
+            return tags;
+        }
+
+        /// <summary>
         /// Return a specific Skyetek hardware device by index number
+        /// Throws InvalidOperationException if no RFID devices have been found
+        /// Throws IndexOutOfRangeException if index is out of range
         /// </summary>
         /// <param name="index">0-based index of device to return</param>
-        /// <returns>Device information.  Throws an IndexOutOfRangeException if index is out of range</returns>
+        /// <returns>Device information.</returns>
         public Device GetDevice(int index)
         {
+            if (_Devices == IntPtr.Zero)
+                throw new InvalidOperationException("No RFID hardware found");
             if ((index < 0) || (index >= NumDevices))
                 throw new IndexOutOfRangeException("Invalid Device Index");
             IntPtr Address = Marshal.ReadIntPtr(_Devices + (4 * index));
@@ -158,17 +281,37 @@ namespace SkyeNet
 
         /// <summary>
         /// Return a specific Skyetek RFID tag reader by index number
+        /// Throws InvalidOperationException if no RFID readers have been found
+        /// Throws IndexOutOfRangeException if index is out of range
         /// </summary>
         /// <param name="index">0-based index of RFID reader to return</param>
-        /// <returns>Reader information.  Throws IndexOutOfRangeException if index is out of range</returns>
+        /// <returns>Reader information.</returns>
         public Reader GetReader(int index)
         {
+            if (_Readers == IntPtr.Zero)
+                throw new InvalidOperationException("No RFID readers found");
             if ((index < 0) || (index >= NumReaders))
                 throw new IndexOutOfRangeException("Invalid Reader Index");
             IntPtr Address = Marshal.ReadIntPtr(_Readers + (4 * index));
             return Marshal.PtrToStructure<Reader>(Address);
         }
 
+        /// <summary>
+        /// Return a specific RFID tag by index number
+        /// Must have recently-discovered tags loaded.  Throws InvalidOperationException if no tags have been discovered
+        /// Throws IndexOutOfRangeException if index is out of range.
+        /// </summary>
+        /// <param name="index">0-based index of recently-disocered RFID tag to return</param>
+        /// <returns>Tag information</returns>
+        public Tag GetTag(int index)
+        {
+            if (_Tags == IntPtr.Zero)
+                throw new InvalidOperationException("Can not read RFID tag: No tags have been discovered");
+            if ((index < 0) || (index >= NumTags))
+                throw new IndexOutOfRangeException("Invalid Tag Index");
+            IntPtr Address = Marshal.ReadIntPtr(_Tags + (4 * index));
+            return Marshal.PtrToStructure<Tag>(Address);
+        }
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
@@ -182,8 +325,10 @@ namespace SkyeNet
                     // TODO: dispose managed state (managed objects).
                 }
 
+                FreeTags();
                 FreeReaders();
                 FreeDevices();
+                ActiveReader = null;
 
                 disposedValue = true;
             }

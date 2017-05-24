@@ -40,6 +40,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Tag.cs" />
+    <Compile Include="TagType.cs" />
+    <Compile Include="Status.cs" />
     <Compile Include="ID.cs" />
     <Compile Include="Reader.cs" />
     <Compile Include="Device.cs" />
