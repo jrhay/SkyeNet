@@ -1,0 +1,17 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+//  SkyeTek API Notes
+//
+/////////////////////////////////////////////////////////////////////////////
+
+--------------------------------------------------------------------------------
+Version: Label 07-18-2016
+Date:    07/18/16
+Author:  QGu
+
+	- Fixed memory leaks reported by themofisher
+	- Make the large local variable (STPV3_REQUEST and STPV3_RESPONSE) in Stpv3.c and Stpv2.c optionally 
+	  global as requested by thermofisher. To make them global, the API has to be compiled with flag
+	  SHARED_REQ_RESP = 1.
+	- Test done with Reader Example.
+

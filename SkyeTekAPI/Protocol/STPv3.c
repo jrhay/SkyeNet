@@ -2485,7 +2485,7 @@ STPV3_UploadFirmware(
          /* Account for blockLen */
          nr +=2; 
          commandCode = WRITE_DATA;
-         if( sendBLCommand(lpReader->lpDevice, commandCode, encryptedDataBuf, (UINT16)nr, responseBuf) == 0 )
+         if( sendBLCommand(lpReader->lpDevice, commandCode, encryptedDataBuf, nr, responseBuf) == 0 )
          {
             fclose(shfFile);
             return SKYETEK_FIRMWARE_READER_ERROR;
